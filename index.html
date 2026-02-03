@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gagandeep Singh | Software Developer</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Space+Mono:wght@400;700&display=swap');
+        
+        :root {
+            --primary: #00ff88;
+            --secondary: #00d4ff;
+            --accent: #ff0080;
+            --dark: #0a0a0f;
+            --glow: rgba(0, 255, 136, 0.3);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Space Mono', monospace;
+            overflow: hidden;
+            background: var(--dark);
+            color: #ffffff;
+            cursor: crosshair;
+        }
+        
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+        
+        .content {
+            position: relative;
+            z-index: 10;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            pointer-events: none;
+            text-align: center;
+        }
+        
+        .glitch-wrapper {
+            position: relative;
+        }
+        
+        h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(3rem, 12vw, 8rem);
+            font-weight: 900;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 50%, var(--accent) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            position: relative;
+            animation: fadeInDown 1s ease-out, textGlow 3s ease-in-out infinite alternate;
+            text-shadow: 0 0 30px var(--glow);
+        }
+        
+        h1::before,
+        h1::after {
+            content: attr(data-text);
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 50%, var(--accent) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        h1::before {
+            animation: glitch1 2.5s infinite;
+            clip-path: polygon(0 0, 100% 0, 100% 45%, 0 45%);
+            transform: translate(-2px, -2px);
+            opacity: 0.8;
+        }
+        
+        h1::after {
+            animation: glitch2 2s infinite;
+            clip-path: polygon(0 55%, 100% 55%, 100% 100%, 0 100%);
+            transform: translate(2px, 2px);
+            opacity: 0.8;
+        }
+        
+        .subtitle {
+            font-size: clamp(1.2rem, 3vw, 2rem);
+            letter-spacing: 0.3em;
+            margin-top: 2rem;
+            color: var(--secondary);
+            font-weight: 700;
+            animation: fadeInUp 1s ease-out 0.3s backwards;
+            position: relative;
+            padding: 0.5rem 2rem;
+        }
+        
+        .subtitle::before,
+        .subtitle::after {
+            content: '';
+            position: absolute;
+            height: 2px;
+            width: 60px;
+            background: linear-gradient(90deg, transparent, var(--primary), transparent);
+            top: 50%;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        .subtitle::before {
+            left: -80px;
+        }
+        
+        .subtitle::after {
+            right: -80px;
+        }
+        
+        .code-line {
+            font-family: 'Space Mono', monospace;
+            font-size: clamp(0.8rem, 2vw, 1.2rem);
+            color: rgba(255, 255, 255, 0.6);
+            margin-top: 3rem;
+            animation: typewriter 2s steps(40) 1s backwards, fadeIn 0.5s 1s backwards;
+            overflow: hidden;
+            white-space: nowrap;
+            border-right: 3px solid var(--primary);
+        }
+        
+        .decorative-corner {
+            position: fixed;
+            width: 150px;
+            height: 150px;
+            border: 2px solid var(--primary);
+            opacity: 0.3;
+            z-index: 5;
+            pointer-events: none;
+        }
+        
+        .corner-tl {
+            top: 30px;
+            left: 30px;
+            border-right: none;
+            border-bottom: none;
+            animation: slideInTL 1s ease-out;
+        }
+        
+        .corner-br {
+            bottom: 30px;
+            right: 30px;
+            border-left: none;
+            border-top: none;
+            animation: slideInBR 1s ease-out;
+        }
+        
+        .scan-line {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--primary), transparent);
+            opacity: 0.2;
+            z-index: 15;
+            animation: scan 4s linear infinite;
+        }
+        
+        .grid-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(0, 255, 136, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 136, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            z-index: 2;
+            pointer-events: none;
+        }
+        
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+        
+        @keyframes glitch1 {
+            0%, 100% {
+                transform: translate(0);
+            }
+            33% {
+                transform: translate(-3px, 2px);
+            }
+            66% {
+                transform: translate(3px, -2px);
+            }
+        }
+        
+        @keyframes glitch2 {
+            0%, 100% {
+                transform: translate(0);
+            }
+            33% {
+                transform: translate(2px, -2px);
+            }
+            66% {
+                transform: translate(-2px, 2px);
+            }
+        }
+        
+        @keyframes textGlow {
+            0% {
+                filter: drop-shadow(0 0 10px var(--glow));
+            }
+            100% {
+                filter: drop-shadow(0 0 30px var(--glow));
+            }
+        }
+        
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 0.3;
+                transform: scaleX(1);
+            }
+            50% {
+                opacity: 1;
+                transform: scaleX(1.5);
+            }
+        }
+        
+        @keyframes typewriter {
+            from {
+                width: 0;
+            }
+            to {
+                width: 100%;
+            }
+        }
+        
+        @keyframes slideInTL {
+            from {
+                transform: translate(-100px, -100px);
+                opacity: 0;
+            }
+            to {
+                transform: translate(0, 0);
+                opacity: 0.3;
+            }
+        }
+        
+        @keyframes slideInBR {
+            from {
+                transform: translate(100px, 100px);
+                opacity: 0;
+            }
+            to {
+                transform: translate(0, 0);
+                opacity: 0.3;
+            }
+        }
+        
+        @keyframes scan {
+            0% {
+                transform: translateY(0);
+            }
+            100% {
+                transform: translateY(100vh);
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .subtitle::before,
+            .subtitle::after {
+                display: none;
+            }
+            
+            .decorative-corner {
+                width: 80px;
+                height: 80px;
+            }
+            
+            .corner-tl {
+                top: 15px;
+                left: 15px;
+            }
+            
+            .corner-br {
+                bottom: 15px;
+                right: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="canvas-container"></div>
+    <div class="grid-overlay"></div>
+    <div class="scan-line"></div>
+    <div class="decorative-corner corner-tl"></div>
+    <div class="decorative-corner corner-br"></div>
+    
+    <div class="content">
+        <div class="glitch-wrapper">
+            <h1 data-text="GAGANDEEP SINGH">GAGANDEEP SINGH</h1>
+        </div>
+        <div class="subtitle">SOFTWARE DEVELOPER</div>
+        <div class="code-line">const passion = "Building the future";</div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        // Three.js Scene Setup
+        const container = document.getElementById('canvas-container');
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        container.appendChild(renderer.domElement);
+        
+        camera.position.z = 50;
+        
+        // Particle System
+        const particleCount = 3000;
+        const particles = new THREE.BufferGeometry();
+        const positions = new Float32Array(particleCount * 3);
+        const colors = new Float32Array(particleCount * 3);
+        const sizes = new Float32Array(particleCount);
+        
+        const colorPalette = [
+            new THREE.Color(0x00ff88),
+            new THREE.Color(0x00d4ff),
+            new THREE.Color(0xff0080),
+            new THREE.Color(0x00ffff)
+        ];
+        
+        for (let i = 0; i < particleCount; i++) {
+            const i3 = i * 3;
+            positions[i3] = (Math.random() - 0.5) * 200;
+            positions[i3 + 1] = (Math.random() - 0.5) * 200;
+            positions[i3 + 2] = (Math.random() - 0.5) * 200;
+            
+            const color = colorPalette[Math.floor(Math.random() * colorPalette.length)];
+            colors[i3] = color.r;
+            colors[i3 + 1] = color.g;
+            colors[i3 + 2] = color.b;
+            
+            sizes[i] = Math.random() * 2 + 0.5;
+        }
+        
+        particles.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        particles.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+        particles.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+        
+        const particleMaterial = new THREE.ShaderMaterial({
+            vertexShader: `
+                attribute float size;
+                attribute vec3 color;
+                varying vec3 vColor;
+                
+                void main() {
+                    vColor = color;
+                    vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+                    gl_PointSize = size * (300.0 / -mvPosition.z);
+                    gl_Position = projectionMatrix * mvPosition;
+                }
+            `,
+            fragmentShader: `
+                varying vec3 vColor;
+                
+                void main() {
+                    float dist = length(gl_PointCoord - vec2(0.5));
+                    if (dist > 0.5) discard;
+                    
+                    float strength = 1.0 - (dist * 2.0);
+                    vec3 finalColor = vColor * strength;
+                    
+                    gl_FragColor = vec4(finalColor, strength * 0.8);
+                }
+            `,
+            transparent: true,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false
+        });
+        
+        const particleSystem = new THREE.Points(particles, particleMaterial);
+        scene.add(particleSystem);
+        
+        // Geometric Structures
+        const geometries = [];
+        const createGeometry = (type, size, color) => {
+            let geometry;
+            switch(type) {
+                case 'torus':
+                    geometry = new THREE.TorusGeometry(size, size * 0.3, 16, 100);
+                    break;
+                case 'octahedron':
+                    geometry = new THREE.OctahedronGeometry(size);
+                    break;
+                case 'icosahedron':
+                    geometry = new THREE.IcosahedronGeometry(size);
+                    break;
+            }
+            
+            const material = new THREE.MeshBasicMaterial({
+                color: color,
+                wireframe: true,
+                transparent: true,
+                opacity: 0.2
+            });
+            
+            const mesh = new THREE.Mesh(geometry, material);
+            mesh.position.set(
+                (Math.random() - 0.5) * 80,
+                (Math.random() - 0.5) * 80,
+                (Math.random() - 0.5) * 80
+            );
+            
+            mesh.userData.rotationSpeed = {
+                x: (Math.random() - 0.5) * 0.02,
+                y: (Math.random() - 0.5) * 0.02,
+                z: (Math.random() - 0.5) * 0.02
+            };
+            
+            return mesh;
+        };
+        
+        for (let i = 0; i < 8; i++) {
+            const types = ['torus', 'octahedron', 'icosahedron'];
+            const type = types[Math.floor(Math.random() * types.length)];
+            const size = Math.random() * 8 + 4;
+            const color = colorPalette[Math.floor(Math.random() * colorPalette.length)];
+            
+            const geom = createGeometry(type, size, color);
+            geometries.push(geom);
+            scene.add(geom);
+        }
+        
+        // Connection Lines
+        const lineGeometry = new THREE.BufferGeometry();
+        const lineMaterial = new THREE.LineBasicMaterial({
+            color: 0x00ff88,
+            transparent: true,
+            opacity: 0.1,
+            blending: THREE.AdditiveBlending
+        });
+        
+        const linePositions = [];
+        const connectionDistance = 30;
+        
+        // Mouse interaction
+        const mouse = new THREE.Vector2();
+        const raycaster = new THREE.Raycaster();
+        
+        window.addEventListener('mousemove', (event) => {
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+        });
+        
+        // Animation Loop
+        let time = 0;
+        function animate() {
+            requestAnimationFrame(animate);
+            time += 0.01;
+            
+            // Rotate particle system
+            particleSystem.rotation.y = time * 0.1;
+            particleSystem.rotation.x = time * 0.05;
+            
+            // Animate particles
+            const positions = particleSystem.geometry.attributes.position.array;
+            for (let i = 0; i < particleCount; i++) {
+                const i3 = i * 3;
+                positions[i3 + 1] += Math.sin(time + i * 0.01) * 0.05;
+                
+                // Wrap around
+                if (positions[i3 + 1] > 100) positions[i3 + 1] = -100;
+                if (positions[i3 + 1] < -100) positions[i3 + 1] = 100;
+            }
+            particleSystem.geometry.attributes.position.needsUpdate = true;
+            
+            // Animate geometries
+            geometries.forEach(geom => {
+                geom.rotation.x += geom.userData.rotationSpeed.x;
+                geom.rotation.y += geom.userData.rotationSpeed.y;
+                geom.rotation.z += geom.userData.rotationSpeed.z;
+                
+                // Floating motion
+                geom.position.y += Math.sin(time + geom.position.x) * 0.02;
+            });
+            
+            // Camera movement based on mouse
+            camera.position.x += (mouse.x * 5 - camera.position.x) * 0.05;
+            camera.position.y += (-mouse.y * 5 - camera.position.y) * 0.05;
+            camera.lookAt(scene.position);
+            
+            renderer.render(scene, camera);
+        }
+        
+        // Handle Window Resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+        
+        // Start Animation
+        animate();
+        
+        // Interactive particles burst on click
+        container.addEventListener('click', (event) => {
+            const rect = container.getBoundingClientRect();
+            const x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+            const y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+            
+            // Create burst effect
+            const burstGeometry = new THREE.BufferGeometry();
+            const burstCount = 50;
+            const burstPositions = new Float32Array(burstCount * 3);
+            const burstColors = new Float32Array(burstCount * 3);
+            
+            for (let i = 0; i < burstCount; i++) {
+                const i3 = i * 3;
+                burstPositions[i3] = x * 50;
+                burstPositions[i3 + 1] = y * 50;
+                burstPositions[i3 + 2] = 0;
+                
+                const color = colorPalette[Math.floor(Math.random() * colorPalette.length)];
+                burstColors[i3] = color.r;
+                burstColors[i3 + 1] = color.g;
+                burstColors[i3 + 2] = color.b;
+            }
+            
+            burstGeometry.setAttribute('position', new THREE.BufferAttribute(burstPositions, 3));
+            burstGeometry.setAttribute('color', new THREE.BufferAttribute(burstColors, 3));
+            
+            const burstMaterial = new THREE.PointsMaterial({
+                size: 3,
+                vertexColors: true,
+                transparent: true,
+                opacity: 1,
+                blending: THREE.AdditiveBlending
+            });
+            
+            const burst = new THREE.Points(burstGeometry, burstMaterial);
+            scene.add(burst);
+            
+            // Animate burst
+            let burstTime = 0;
+            const burstAnimate = () => {
+                burstTime += 0.05;
+                const positions = burst.geometry.attributes.position.array;
+                
+                for (let i = 0; i < burstCount; i++) {
+                    const i3 = i * 3;
+                    const angle = (i / burstCount) * Math.PI * 2;
+                    positions[i3] += Math.cos(angle) * 2;
+                    positions[i3 + 1] += Math.sin(angle) * 2;
+                    positions[i3 + 2] += (Math.random() - 0.5) * 2;
+                }
+                
+                burst.geometry.attributes.position.needsUpdate = true;
+                burst.material.opacity -= 0.02;
+                
+                if (burst.material.opacity > 0) {
+                    requestAnimationFrame(burstAnimate);
+                } else {
+                    scene.remove(burst);
+                    burst.geometry.dispose();
+                    burst.material.dispose();
+                }
+            };
+            burstAnimate();
+        });
+    </script>
+</body>
+</html>
